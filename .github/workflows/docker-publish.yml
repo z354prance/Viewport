@@ -6,6 +6,10 @@ on:
       - main
     tags:
       - "v*"
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - "unraid/**"
   workflow_dispatch:
 
 permissions:
