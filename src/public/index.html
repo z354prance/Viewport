@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viewport</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #0b0d10;
+  color: #f4f4f5;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #24272d;
+  background: #111318;
+}
+
+.topbar {
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.address-row {
+  display: flex;
+  gap: 10px;
+}
+
+#url {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #343840;
+  background: #191c22;
+  color: #fff;
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+#url:focus {
+  border-color: #71717a;
+}
+
+button {
+  border: 1px solid #343840;
+  background: #191c22;
+  color: #e7e7e9;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #24272e;
+}
+
+button.active {
+  background: #f4f4f5;
+  color: #111318;
+  border-color: #f4f4f5;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #24272d;
+  background: #111318;
+}
+
+#rotate {
+  margin-left: 8px;
+}
+
+.workspace {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 32px;
+}
+
+.preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.device {
+  position: relative;
+  background: #050506;
+  border: 1px solid #343840;
+  box-shadow: 0 22px 70px rgba(0,0,0,.45);
+  overflow: hidden;
+  transition:
+    width .2s ease,
+    height .2s ease,
+    border-radius .2s ease,
+    padding .2s ease;
+}
+
+.device.desktop {
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.device.tablet {
+  border-radius: 24px;
+  padding: 10px;
+}
+
+.device.mobile {
+  border-radius: 34px;
+  padding: 10px;
+}
+
+.screen {
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.desktop .screen {
+  border-radius: 6px;
+}
+
+.tablet .screen {
+  border-radius: 15px;
+}
+
+.mobile .screen {
+  border-radius: 24px;
+}
+
+#browser {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  cursor: default;
+  outline: none;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111318;
+  color: #a1a1aa;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.loading.hidden {
+  display: none;
+}
+
+.status {
+  margin-top: 14px;
+  color: #a1a1aa;
+  font-size: 13px;
+  text-align: center;
+}
+
+.connection {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: #71717a;
+}
+
+.connection.online {
+  background: #22c55e;
+}
+
+.connection.offline {
+  background: #ef4444;
+}
+
+@media (max-width: 700px) {
+  header {
+    padding: 14px;
+  }
+
+  .address-row {
+    flex-direction: column;
+  }
+
+  .workspace {
+    padding: 18px 8px;
+  }
+
+  .controls {
+    padding: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <header>
+    <div class="topbar">
+      <div class="brand">Viewport</div>
+
+      <div class="address-row">
+        <input
+          id="url"
+          type="text"
+          value="https://example.com"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Website address"
+        >
+        <button id="go">Go</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <button data-mode="desktop" class="active">Desktop</button>
+    <button data-mode="tablet">Tablet</button>
+    <button data-mode="mobile">Mobile</button>
+    <button id="rotate">↻ Rotate</button>
+  </div>
+
+  <main class="workspace">
+    <div class="preview-wrap">
+      <div id="device" class="device desktop">
+        <div class="screen">
+          <canvas id="browser" tabindex="0"></canvas>
+          <div id="loading" class="loading">Connecting to browser…</div>
+        </div>
+      </div>
+
+      <div id="status" class="status">
+        <span id="connection" class="connection"></span>
+        Connecting…
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+const sessionId =
+  sessionStorage.getItem("viewportSession") ||
+  crypto.randomUUID();
+
+sessionStorage.setItem("viewportSession", sessionId);
+
+const canvas = document.getElementById("browser");
+const ctx = canvas.getContext("2d");
+
+const device = document.getElementById("device");
+const statusEl = document.getElementById("status");
+const connectionEl = document.getElementById("connection");
+const loadingEl = document.getElementById("loading");
+const urlInput = document.getElementById("url");
+const goButton = document.getElementById("go");
+const rotateButton = document.getElementById("rotate");
+
+let ws;
+let state = {
+  mode: "desktop",
+  orientation: "landscape",
+  viewport: {
+    width: 1440,
+    height: 900
+  },
+  label: "Desktop 1440 × 900"
+};
+
+let frameWidth = 1440;
+let frameHeight = 900;
+
+function fitDevice() {
+  const vw = state.viewport?.width || frameWidth || 1440;
+  const vh = state.viewport?.height || frameHeight || 900;
+
+  const availableWidth = Math.max(300, window.innerWidth - 64);
+  const availableHeight = Math.max(300, window.innerHeight - 240);
+
+  const maxScale = state.mode === "desktop" ? 1 : 1.15;
+
+  const scale = Math.min(
+    availableWidth / vw,
+    availableHeight / vh,
+    maxScale
+  );
+
+  const width = Math.max(1, Math.round(vw * scale));
+  const height = Math.max(1, Math.round(vh * scale));
+
+  device.className = `device ${state.mode}`;
+  device.style.width = `${width + (state.mode === "desktop" ? 8 : 20)}px`;
+  device.style.height = `${height + (state.mode === "desktop" ? 8 : 20)}px`;
+
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+
+  rotateButton.style.display =
+    state.mode === "desktop" ? "none" : "inline-block";
+
+  document.querySelectorAll("[data-mode]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.mode === state.mode
+    );
+  });
+
+  statusEl.lastChild.textContent =
+    ` ${state.label} • ${vw} × ${vh}`;
+}
+
+function setConnection(online) {
+  connectionEl.classList.remove("online", "offline");
+  connectionEl.classList.add(online ? "online" : "offline");
+}
+
+function connect() {
+  const protocol =
+    location.protocol === "https:" ? "wss:" : "ws:";
+
+  ws = new WebSocket(
+    `${protocol}//${location.host}/ws?session=${encodeURIComponent(sessionId)}`
+  );
+
+  ws.addEventListener("open", () => {
+    setConnection(true);
+  });
+
+  ws.addEventListener("close", () => {
+    setConnection(false);
+    loadingEl.textContent = "Reconnecting…";
+    loadingEl.classList.remove("hidden");
+
+    setTimeout(connect, 1500);
+  });
+
+  ws.addEventListener("message", event => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === "state") {
+      state = msg;
+
+      if (msg.url) {
+        urlInput.value = msg.url;
+      }
+
+      fitDevice();
+      return;
+    }
+
+    if (msg.type === "url") {
+      if (msg.url && msg.url !== "about:blank") {
+        urlInput.value = msg.url;
+      }
+      return;
+    }
+
+    if (msg.type === "frame") {
+      drawFrame(msg.data);
+    }
+  });
+}
+
+function drawFrame(base64) {
+  const image = new Image();
+
+  image.onload = () => {
+    frameWidth = image.naturalWidth;
+    frameHeight = image.naturalHeight;
+
+    if (
+      canvas.width !== frameWidth ||
+      canvas.height !== frameHeight
+    ) {
+      canvas.width = frameWidth;
+      canvas.height = frameHeight;
+    }
+
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      frameWidth,
+      frameHeight
+    );
+
+    loadingEl.classList.add("hidden");
+  };
+
+  image.src = `data:image/jpeg;base64,${base64}`;
+}
+
+function browserCoordinates(event) {
+  const rect = canvas.getBoundingClientRect();
+
+  return {
+    x: (event.clientX - rect.left) *
+       (state.viewport.width / rect.width),
+
+    y: (event.clientY - rect.top) *
+       (state.viewport.height / rect.height)
+  };
+}
+
+function send(data) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(data));
+  }
+}
+
+canvas.addEventListener("mousemove", event => {
+  const point = browserCoordinates(event);
+
+  send({
+    type: "move",
+    x: point.x,
+    y: point.y
+  });
+});
+
+canvas.addEventListener("click", event => {
+  const point = browserCoordinates(event);
+
+  canvas.focus();
+
+  send({
+    type: "click",
+    x: point.x,
+    y: point.y
+  });
+});
+
+canvas.addEventListener(
+  "wheel",
+  event => {
+    event.preventDefault();
+
+    send({
+      type: "scroll",
+      deltaX: event.deltaX,
+      deltaY: event.deltaY
+    });
+  },
+  { passive: false }
+);
+
+canvas.addEventListener("keydown", event => {
+  event.preventDefault();
+
+  const specialKeys = {
+    Enter: "Enter",
+    Backspace: "Backspace",
+    Delete: "Delete",
+    Tab: "Tab",
+    Escape: "Escape",
+    ArrowUp: "ArrowUp",
+    ArrowDown: "ArrowDown",
+    ArrowLeft: "ArrowLeft",
+    ArrowRight: "ArrowRight",
+    Home: "Home",
+    End: "End",
+    PageUp: "PageUp",
+    PageDown: "PageDown"
+  };
+
+  if (specialKeys[event.key]) {
+    send({
+      type: "keydown",
+      key: specialKeys[event.key]
+    });
+
+    return;
+  }
+
+  if (
+    event.key.length === 1 &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey
+  ) {
+    send({
+      type: "text",
+      text: event.key
+    });
+  }
+});
+
+async function loadUrl() {
+  const value = urlInput.value.trim();
+
+  if (!value) return;
+
+  loadingEl.textContent = "Loading…";
+  loadingEl.classList.remove("hidden");
+
+  try {
+    const response = await fetch("/api/load", {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Viewport-Session": sessionId
+      },
+      method: "POST",
+      body: JSON.stringify({
+        url: value
+      })
+    });
+
+    const result = await response.json();
+
+    if (!result.ok) {
+      throw new Error(result.error || "Unable to load URL");
+    }
+  } catch (error) {
+    loadingEl.textContent = error.message;
+  }
+}
+
+goButton.addEventListener("click", loadUrl);
+
+urlInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    loadUrl();
+  }
+});
+
+document.querySelectorAll("[data-mode]").forEach(button => {
+  button.addEventListener("click", async () => {
+    loadingEl.textContent = "Changing device…";
+    loadingEl.classList.remove("hidden");
+
+    await fetch("/api/mode", {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Viewport-Session": sessionId
+      },
+      method: "POST",
+      body: JSON.stringify({
+        mode: button.dataset.mode
+      })
+    });
+  });
+});
+
+rotateButton.addEventListener("click", async () => {
+  loadingEl.textContent = "Rotating device…";
+  loadingEl.classList.remove("hidden");
+
+  await fetch("/api/rotate", {
+      headers: {
+        "X-Viewport-Session": sessionId
+      },
+    method: "POST"
+  });
+});
+
+window.addEventListener("resize", fitDevice);
+
+connect();
+fitDevice();
+</script>
+</body>
+</html>

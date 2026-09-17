@@ -1,0 +1,15 @@
+{
+  "name": "viewport",
+  "version": "2.0.0",
+  "description": "Simple desktop, tablet and mobile website previewer",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "playwright": "1.55.0",
+    "ws": "^8.18.0"
+  }
+}

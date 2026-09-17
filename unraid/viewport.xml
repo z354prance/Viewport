@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Viewport</Name>
+  <Repository>ghcr.io/z354prance/viewport:latest</Repository>
+  <Registry>https://github.com/z354prance/Viewport/pkgs/container/viewport</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/z354prance/Viewport/issues</Support>
+  <Project>https://github.com/z354prance/Viewport</Project>
+  <Overview>Simple interactive website previewer for Desktop, Tablet, and Mobile layouts using Playwright and Chromium.</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/z354prance/Viewport/main/unraid/viewport.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/unraid/docker-templates/master/images/unraid.png</Icon>
+  <ExtraParams>--shm-size=1g</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Web UI" Target="3000" Default="3000" Mode="tcp" Description="Viewport Web UI" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+</Container>
