@@ -88,6 +88,35 @@ button.active {
   border-color: #f4f4f5;
 }
 
+.device-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  color: #a1a1aa;
+  font-size: 13px;
+}
+
+.device-picker.hidden {
+  display: none;
+}
+
+#device-profile {
+  max-width: 220px;
+  border: 1px solid #343840;
+  background: #191c22;
+  color: #e7e7e9;
+  border-radius: 9px;
+  padding: 9px 34px 9px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#device-profile:focus {
+  border-color: #71717a;
+  outline: none;
+}
+
 .controls {
   display: flex;
   justify-content: center;
@@ -261,6 +290,10 @@ button.active {
     <button data-mode="desktop" class="active">Desktop</button>
     <button data-mode="tablet">Tablet</button>
     <button data-mode="mobile">Mobile</button>
+    <label id="device-picker" class="device-picker hidden">
+      <span>Device</span>
+      <select id="device-profile" aria-label="Device profile"></select>
+    </label>
     <button id="rotate">↻ Rotate</button>
   </div>
 
@@ -299,6 +332,13 @@ const loadingEl = document.getElementById("loading");
 const urlInput = document.getElementById("url");
 const goButton = document.getElementById("go");
 const rotateButton = document.getElementById("rotate");
+const devicePicker = document.getElementById("device-picker");
+const deviceSelect = document.getElementById("device-profile");
+
+let deviceProfiles = {
+  mobile: [],
+  tablet: []
+};
 
 let ws;
 let state = {
@@ -342,6 +382,8 @@ function fitDevice() {
   rotateButton.style.display =
     state.mode === "desktop" ? "none" : "inline-block";
 
+  syncDevicePicker();
+
   document.querySelectorAll("[data-mode]").forEach(button => {
     button.classList.toggle(
       "active",
@@ -351,6 +393,54 @@ function fitDevice() {
 
   statusEl.lastChild.textContent =
     ` ${state.label} • ${vw} × ${vh}`;
+}
+
+function syncDevicePicker() {
+  const profiles = deviceProfiles[state.mode] || [];
+  const isVisible = profiles.length > 0;
+
+  devicePicker.classList.toggle("hidden", !isVisible);
+
+  if (!isVisible) return;
+
+  const existingProfiles = Array.from(
+    deviceSelect.options,
+    option => option.value
+  );
+
+  if (
+    existingProfiles.length !== profiles.length ||
+    existingProfiles.some((name, index) => name !== profiles[index])
+  ) {
+    deviceSelect.replaceChildren(
+      ...profiles.map(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        return option;
+      })
+    );
+  }
+
+  if (state.device && profiles.includes(state.device)) {
+    deviceSelect.value = state.device;
+  }
+}
+
+async function loadDeviceProfiles() {
+  try {
+    const response = await fetch("/api/devices");
+
+    if (!response.ok) {
+      throw new Error("Unable to load device profiles");
+    }
+
+    const result = await response.json();
+    deviceProfiles = result.profiles || deviceProfiles;
+    syncDevicePicker();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function setConnection(online) {
@@ -597,8 +687,36 @@ rotateButton.addEventListener("click", async () => {
   });
 });
 
+deviceSelect.addEventListener("change", async () => {
+  loadingEl.textContent = "Changing device…";
+  loadingEl.classList.remove("hidden");
+
+  try {
+    const response = await fetch("/api/device", {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Viewport-Session": sessionId
+      },
+      method: "POST",
+      body: JSON.stringify({
+        mode: state.mode,
+        device: deviceSelect.value
+      })
+    });
+    const result = await response.json();
+
+    if (!result.ok) {
+      throw new Error(result.error || "Unable to change device");
+    }
+  } catch (error) {
+    loadingEl.textContent = error.message;
+    syncDevicePicker();
+  }
+});
+
 window.addEventListener("resize", fitDevice);
 
+loadDeviceProfiles();
 connect();
 fitDevice();
 </script>

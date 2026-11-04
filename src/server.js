@@ -3,6 +3,11 @@ const http = require("http");
 const crypto = require("crypto");
 const { WebSocketServer } = require("ws");
 const { chromium, devices } = require("playwright");
+const {
+  DEFAULT_DEVICES,
+  availableDeviceProfiles,
+  modeProfile
+} = require("./deviceProfiles");
 
 const PORT = Number(process.env.PORT || 3000);
 const SESSION_TIMEOUT = 5 * 60 * 1000;
@@ -16,51 +21,6 @@ const wss = new WebSocketServer({ server, path: "/ws" });
 
 let browser;
 const sessions = new Map();
-
-function modeProfile(mode, orientation = "portrait") {
-  if (mode === "mobile") {
-    return {
-      label:
-        orientation === "landscape"
-          ? "Galaxy S24 Landscape"
-          : "Galaxy S24",
-      options:
-        orientation === "landscape"
-          ? devices["Galaxy S24 landscape"]
-          : devices["Galaxy S24"]
-    };
-  }
-
-  if (mode === "tablet") {
-    return {
-      label:
-        orientation === "landscape"
-          ? "iPad Pro 11 Landscape"
-          : "iPad Pro 11",
-      options:
-        orientation === "landscape"
-          ? devices["iPad Pro 11 landscape"]
-          : devices["iPad Pro 11"]
-    };
-  }
-
-  return {
-    label: "Desktop 1440 × 900",
-    options: {
-      viewport: {
-        width: 1440,
-        height: 900
-      },
-      screen: {
-        width: 1440,
-        height: 900
-      },
-      deviceScaleFactor: 1,
-      isMobile: false,
-      hasTouch: false
-    }
-  };
-}
 
 function normalizeUrl(value) {
   let text = String(value || "").trim();
@@ -91,7 +51,9 @@ function send(ws, data) {
 function sessionState(session) {
   const profile = modeProfile(
     session.mode,
-    session.orientation
+    session.orientation,
+    session.devices[session.mode],
+    devices
   );
 
   return {
@@ -99,6 +61,7 @@ function sessionState(session) {
     sessionId: session.id,
     mode: session.mode,
     orientation: session.orientation,
+    device: profile.device,
     url: session.url,
     label: profile.label,
     viewport: profile.options.viewport
@@ -203,7 +166,9 @@ async function createPage(session) {
 
   const profile = modeProfile(
     session.mode,
-    session.orientation
+    session.orientation,
+    session.devices[session.mode],
+    devices
   );
 
   session.context = await browser.newContext({
@@ -248,6 +213,9 @@ async function newSession(id) {
     id,
     mode: "desktop",
     orientation: "landscape",
+    devices: {
+      ...DEFAULT_DEVICES
+    },
     url: "https://example.com",
     context: null,
     page: null,
@@ -295,6 +263,13 @@ app.get("/health", (_req, res) => {
     status: "ok",
     application: "Viewport",
     sessions: sessions.size
+  });
+});
+
+app.get("/api/devices", (_req, res) => {
+  res.json({
+    defaults: DEFAULT_DEVICES,
+    profiles: availableDeviceProfiles(devices)
   });
 });
 
@@ -388,6 +363,43 @@ app.post("/api/rotate", async (req, res) => {
 
       await createPage(session);
     }
+
+    res.json({
+      ok: true,
+      ...sessionState(session)
+    });
+  } catch (err) {
+    res.status(400).json({
+      ok: false,
+      error: err.message
+    });
+  }
+});
+
+app.post("/api/device", async (req, res) => {
+  try {
+    const session = await getSession(
+      getSessionId(req)
+    );
+    const mode = req.body.mode;
+    const device = String(req.body.device || "");
+
+    if (
+      !["tablet", "mobile"].includes(mode) ||
+      session.mode !== mode
+    ) {
+      throw new Error("Device profile does not match the active mode");
+    }
+
+    modeProfile(
+      mode,
+      session.orientation,
+      device,
+      devices
+    );
+
+    session.devices[mode] = device;
+    await createPage(session);
 
     res.json({
       ok: true,

@@ -20,13 +20,18 @@ It uses Playwright and Chromium to render websites on the server and streams the
 
 ## Device Profiles
 
-Viewport currently provides:
+Viewport provides a fixed desktop size plus selectable Playwright device
+profiles for tablet and mobile testing:
 
 - Desktop — Chromium at 1440x900
-- Tablet — iPad Pro 11
-- Mobile — Galaxy S24
+- Tablet — iPad Pro 11 (default), iPad (gen 11), iPad Mini, Galaxy Tab S9,
+  Galaxy Tab S4, Nexus 7, Nexus 10, and Kindle Fire HDX
+- Mobile — Galaxy S24 (default), Galaxy A55, Pixel 7, iPhone 15,
+  iPhone 15 Pro, iPhone 15 Pro Max, and iPhone SE (3rd gen)
 
-Tablet and Mobile modes support portrait and landscape orientations.
+Tablet and Mobile modes support portrait and landscape orientations. Device
+selection is isolated per Viewport browser session, just like navigation and
+the streamed Playwright page.
 
 ## Docker
 
