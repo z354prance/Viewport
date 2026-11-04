@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viewport</title>
+<link rel="icon" type="image/png" href="/viewport-logo.png">
 
 <style>
 :root {
@@ -86,15 +87,14 @@ header {
 .brand-mark {
   width: 38px;
   height: 38px;
-  display: grid;
-  place-items: center;
+  display: block;
+  flex: 0 0 auto;
+  padding: 3px;
   border: 1px solid rgba(255, 255, 255, .13);
   border-radius: 12px;
-  background: linear-gradient(145deg, #9185ff, #5b4bd7);
+  background: rgba(124, 109, 242, .12);
   box-shadow: 0 10px 30px rgba(124, 109, 242, .24);
-  color: white;
-  font-size: 18px;
-  font-weight: 800;
+  object-fit: contain;
 }
 
 .brand-name {
@@ -525,7 +525,7 @@ select:focus-visible {
     <div class="topbar">
       <div class="header-row">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">V</div>
+          <img class="brand-mark" src="/viewport-logo.png" alt="">
           <div>
             <div class="brand-name">Viewport</div>
             <div class="brand-subtitle">Interactive responsive testing</div>

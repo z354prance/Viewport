@@ -12,7 +12,7 @@
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/z354prance/Viewport/main/unraid/viewport.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/z354prance/Viewport/main/unraid/viewport-icon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/z354prance/Viewport/main/unraid/viewport-logo.png</Icon>
   <ExtraParams>--shm-size=1g</ExtraParams>
   <PostArgs/>
   <CPUset/>

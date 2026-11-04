@@ -34,4 +34,12 @@ test("interface exposes the primary testing controls and live status", () => {
 
   assert.match(html, /@media \(max-width: 700px\)/);
   assert.match(html, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(html, /href=["']\/viewport-logo\.png["']/);
+  assert.match(html, /src=["']\/viewport-logo\.png["']/);
+  assert.equal(
+    fs.existsSync(
+      path.join(__dirname, "..", "src", "public", "viewport-logo.png")
+    ),
+    true
+  );
 });
